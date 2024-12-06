@@ -59,12 +59,12 @@ python train.py --batch-size 4 --epochs 100 --lr 2e-4
 ## Project Structure
 reflection/  
 ├── models/  
-│ ├── init.py  
-│ ├── diffusion.py  
-│ └── transformer.py  
+   ├── init.py  
+   ├── diffusion.py  
+   └── transformer.py  
 ├── utils/  
-│ ├── init.py  
-│ └── training.py  
+   ├── init.py  
+   └── training.py  
 ├── train.py  
 ├── requirements.txt  
 └── README.md  
