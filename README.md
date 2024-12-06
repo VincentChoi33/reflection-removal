@@ -57,7 +57,7 @@ bash
 python train.py --batch-size 4 --epochs 100 --lr 2e-4
 
 ## Project Structure
-reflection/
+reflection/  
 ├── models/  
 │ ├── init.py  
 │ ├── diffusion.py  
