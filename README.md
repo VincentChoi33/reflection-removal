@@ -27,6 +27,28 @@ The `output/` directory also contains intermediate denoising snapshots from the 
 
 ---
 
+## Visual benchmark examples
+
+Below are targeted side-by-side boards from the 2026 benchmark run.
+
+Each row compares:
+
+`input → RDNet → Dereflection Any Image → GT`
+
+### Real20
+
+![Real20 targeted comparison](docs/assets/real20_targeted.png)
+
+### Nature
+
+![Nature targeted comparison](docs/assets/nature_targeted.png)
+
+### SIR2-Wild
+
+![SIR2-Wild targeted comparison](docs/assets/sir2_wild_targeted.png)
+
+---
+
 ## What this repo is now
 
 This repository has **two layers**:
@@ -51,6 +73,33 @@ This makes the repo useful both as:
 
 - a record of an older diffusion approach, and
 - a launch point for more realistic next experiments
+
+---
+
+## Workflow / pipeline comparison
+
+```mermaid
+flowchart TD
+    A[Reflection-corrupted image] --> B1[Original prototype path]
+    A --> B2[Modern benchmark path]
+
+    B1 --> C1[Conditioned diffusion model]
+    C1 --> D1[Intermediate denoising snapshots]
+    D1 --> E1[Prototype output]
+
+    B2 --> C2[RDNet / XReflection]
+    B2 --> C3[Dereflection Any Image]
+    C2 --> D2[Export predictions]
+    C3 --> D3[Export predictions]
+    D2 --> E2[Unified external PSNR / SSIM]
+    D3 --> E2
+    E2 --> F2[Comparison boards + benchmark report]
+```
+
+In practice:
+
+- the **left branch** is the original experiment,
+- the **right branch** is the newer “don’t guess, benchmark it” workflow.
 
 ---
 
