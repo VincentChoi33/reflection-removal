@@ -19,11 +19,14 @@ The repository slug is still `diffusion-reflection-removal`, but the project is 
 
 ## Sample output
 
-| Input | Final output |
-| --- | --- |
-| ![input](output/input.jpg) | ![final](output/final_result.jpg) |
+Top-of-page example from the benchmarked workflow:
 
-The `output/` directory also contains intermediate denoising snapshots from the original prototype.
+`input → RDNet → Dereflection Any Image → GT`
+
+![Sample reflection-removal comparison](docs/assets/real20_targeted.png)
+
+If you want the original prototype-only artifact trail, the `output/` directory still contains
+its intermediate denoising snapshots and final sample output.
 
 ---
 
