@@ -1,63 +1,116 @@
 # Single-Image Reflection Removal Playground
 
-PyTorch implementation of a single-image reflection-removal research playground centered on an
-older conditioned diffusion prototype plus newer benchmarking/reference utilities.
+> An evolving research workspace for **single-image reflection removal**:
+> an older conditioned diffusion prototype, plus modern benchmarking/reference utilities
+> for stronger baselines.
 
-## Status
+The repository slug is still `diffusion-reflection-removal`, but the project is now better thought of as a **reflection-removal playground** rather than a single frozen model implementation.
 
-This repository is best understood as a **research playground**.
+---
 
-It now contains two layers:
+## TL;DR
 
-1. the original conditioned diffusion prototype,
-2. lightweight benchmark/reference utilities for stronger newer methods.
+- **Original core**: a paired-supervision, conditioned diffusion prototype for reflection removal
+- **Newer layer**: scripts/configs/docs for benchmarking against stronger modern methods
+- **Best use today**: compare new ideas against **RDNet / XReflection** and **Dereflection Any Image**
+- **If you want quality first**: treat the old diffusion model as historical context, not the default strongest baseline
 
-The repository slug remains `diffusion-reflection-removal` for continuity, but the contents are
-better described as a broader single-image reflection-removal workspace rather than just one model.
+---
 
-## Sample Output
+## Sample output
 
 | Input | Final output |
-|---|---|
+| --- | --- |
 | ![input](output/input.jpg) | ![final](output/final_result.jpg) |
 
-The `output/` directory also contains intermediate denoising snapshots produced during inference.
+The `output/` directory also contains intermediate denoising snapshots from the original prototype.
 
-## Original prototype summary
+---
 
-The implementation combines:
+## What this repo is now
 
-1. **UNet-style backbone**
-   - hidden dimension starts at 96
-   - progressive channel expansion: `96 → 192 → 384 → 768`
-   - encoder / decoder skip connections
+This repository has **two layers**:
 
-2. **Conditioned diffusion process**
-   - 1000 diffusion timesteps
-   - linear beta schedule
-   - image-conditioned denoising
+### 1) Original prototype
 
-3. **Progressive reconstruction outputs**
-   - intermediate samples can be written during inference to visualize denoising behavior
+An early reflection-removal model built around:
 
-## Repository Layout
+- a **UNet-style backbone**
+- a **1000-step conditioned diffusion process**
+- paired reflection / reflection-free supervision
+- progressive denoising snapshots during inference
+
+### 2) Benchmark + reference layer
+
+A lightweight evaluation layer for comparing this prototype against stronger public references:
+
+- **RDNet / XReflection**
+- **Dereflection Any Image**
+
+This makes the repo useful both as:
+
+- a record of an older diffusion approach, and
+- a launch point for more realistic next experiments
+
+---
+
+## Benchmark snapshot
+
+Public benchmark run on `Real20`, `Nature`, and `SIR2-Wild` (95 images total).
+
+| Dataset | Count | RDNet PSNR | RDNet SSIM | DAI PSNR | DAI SSIM | Δ PSNR |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Real20 | 20 | 24.1751 | 0.8189 | **25.2353** | **0.8367** | **+1.0601** |
+| Nature | 20 | 26.3320 | 0.8367 | **27.0547** | **0.8421** | **+0.7227** |
+| SIR2-Wild | 55 | 27.1827 | 0.9083 | **27.5731** | **0.9192** | **+0.3904** |
+
+Weighted overall:
+
+- **RDNet**: PSNR `26.3704`, SSIM `0.8744`
+- **DAI**: PSNR `26.9718`, SSIM `0.8856`
+
+See:
+
+- [`docs/benchmarks/2026-04-17-benchmark-report.md`](docs/benchmarks/2026-04-17-benchmark-report.md)
+- [`docs/benchmarks/2026-04-17-rdnet-summary.json`](docs/benchmarks/2026-04-17-rdnet-summary.json)
+- [`docs/benchmarks/2026-04-17-dai-summary.json`](docs/benchmarks/2026-04-17-dai-summary.json)
+
+---
+
+## Repository layout
 
 ```text
 .
-├── config.py
-├── train.py
-├── inference.py
+├── config.py                         # original prototype config
+├── train.py                          # original prototype training entrypoint
+├── inference.py                      # original prototype inference entrypoint
 ├── models/
 │   ├── diffusion.py
 │   └── swin_transformer.py
 ├── utils/
 │   ├── dataset.py
 │   └── training.py
+├── configs/
+│   └── rdnet_eval.yml                # XReflection RDNet test-only config
+├── scripts/
+│   ├── run_dai_eval.py               # external evaluator for Dereflection Any Image
+│   ├── collect_rdnet_results.py      # export + score XReflection outputs
+│   └── make_method_comparison.py     # build side-by-side boards
+├── docs/
+│   ├── latest-methods.md
+│   └── benchmarks/
+│       ├── 2026-04-17-benchmark-report.md
+│       ├── 2026-04-17-rdnet-summary.json
+│       └── 2026-04-17-dai-summary.json
 └── output/
-    └── sample inference artifacts
+    └── sample prototype inference artifacts
 ```
 
-## Setup
+---
+
+## Quick start
+
+### Environment
 
 ```bash
 conda create -n reflection python=3.8
@@ -65,15 +118,17 @@ conda activate reflection
 pip install -r requirements.txt
 ```
 
-## Training
+---
+
+## Original prototype
+
+### Training
 
 ```bash
 python train.py --batch-size 4 --epochs 100 --lr 2e-4
 ```
 
-Training details live in `train.py` and use paired reflection / reflection-free supervision.
-
-## Inference
+### Inference
 
 ```bash
 python inference.py \
@@ -83,47 +138,101 @@ python inference.py \
   --save_interval 50
 ```
 
-### Main arguments
+### Main inference arguments
 
 - `--input` — input image with reflections
-- `--output_dir` — directory for final and intermediate outputs
+- `--output_dir` — directory for final + intermediate outputs
 - `--checkpoint` — trained checkpoint path
-- `--save_interval` — save intermediate denoising results every *N* steps
+- `--save_interval` — save denoising snapshots every *N* steps
 
-## Inference outputs
+### Prototype outputs
 
 1. input image
 2. initial noise image
 3. intermediate denoising snapshots
 4. final reflection-removed image
 
-## Notes and limitations
+---
 
-- CPU and GPU inference are both supported, but intended usage is GPU-oriented.
-- No pretrained checkpoint is bundled in this repository.
-- CUDA / PyTorch compatibility should be checked manually for GPU runs.
+## Stronger baseline / reference evaluation
 
-## 2026 benchmark + reference update
+The files under `scripts/` and `configs/` are meant to be used **alongside upstream repos**, not as a full in-repo reimplementation.
 
-This repository now also includes a lightweight **latest-method benchmarking/reference layer**
-for comparing this prototype against stronger modern baselines:
+### RDNet / XReflection
 
-- **RDNet / XReflection** (CVPR 2025 ecosystem baseline)
-- **Dereflection Any Image** (modern diffusion-based reference)
+Use:
 
-Added materials:
+- `configs/rdnet_eval.yml`
+- `scripts/collect_rdnet_results.py`
+- `scripts/make_method_comparison.py`
 
-- `docs/latest-methods.md` — concise notes on stronger current methods worth using as references
-- `docs/benchmarks/2026-04-17-benchmark-report.md` — public-set benchmark summary from a `develop` host run
-- `docs/benchmarks/2026-04-17-*-summary.json` — per-dataset metric dumps
-- `scripts/run_dai_eval.py` — unified external evaluator for Dereflection Any Image outputs
-- `scripts/collect_rdnet_results.py` — converts XReflection visualization outputs into exportable predictions + metrics
-- `scripts/make_method_comparison.py` — builds side-by-side comparison boards
-- `configs/rdnet_eval.yml` — test-only RDNet evaluation config for XReflection checkpoints
+Typical flow:
 
-These additions **do not replace** the original prototype model in this repo. They are here to
-make future work easier to benchmark against stronger references before investing more time in
-the old diffusion prototype.
+1. run XReflection in `test_only` mode with an RDNet checkpoint
+2. export latest clean predictions from XReflection visualization folders
+3. rescore externally on the public test set
+
+### Dereflection Any Image
+
+Use:
+
+- `scripts/run_dai_eval.py`
+
+Typical flow:
+
+1. point the script at a local clone of `Dereflection-Any-Image`
+2. run inference on public test subsets
+3. save predictions, concat boards, and JSON metrics
+
+---
+
+## Recommended next direction
+
+If you are continuing this project in 2026-style terms:
+
+### Good default path
+
+- benchmark against **RDNet / XReflection**
+- benchmark against **Dereflection Any Image**
+- only then decide whether a new idea beats either of them
+
+### If you want to keep the diffusion angle
+
+Prefer:
+
+- stronger priors,
+- faster inference,
+- better conditioning/control,
+- explicit benchmarking against public sets,
+
+instead of continuing the old prototype blindly.
+
+See [`docs/latest-methods.md`](docs/latest-methods.md).
+
+---
+
+## Current limitations
+
+- The original diffusion model is an **older research prototype**
+- No pretrained checkpoint for the prototype is bundled here
+- The benchmark scripts depend on **external upstream repos** and public dataset layouts
+- GPU-oriented usage is still the intended path
+- CUDA / PyTorch compatibility should be verified manually per environment
+
+---
+
+## Why keep the old prototype at all?
+
+Because it is still useful as:
+
+- a readable baseline for older conditioned diffusion design choices,
+- a record of previous experimentation,
+- a comparison point for how much newer methods have improved
+
+This repo is intentionally positioned to preserve that context while making future work more grounded.
+
+---
+
 ## License
 
 Apache License 2.0. See [`LICENSE`](LICENSE).
