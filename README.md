@@ -1,10 +1,19 @@
-# Diffusion Reflection Removal
+# Single-Image Reflection Removal Playground
 
-PyTorch implementation of single-image reflection removal using a conditioned diffusion model.
+PyTorch implementation of a single-image reflection-removal research playground centered on an
+older conditioned diffusion prototype plus newer benchmarking/reference utilities.
 
 ## Status
 
-This repository is best understood as a **research prototype**. It documents the current model structure, training loop, and inference flow, but it is not packaged as a benchmark suite or production-ready toolkit.
+This repository is best understood as a **research playground**.
+
+It now contains two layers:
+
+1. the original conditioned diffusion prototype,
+2. lightweight benchmark/reference utilities for stronger newer methods.
+
+The repository slug remains `diffusion-reflection-removal` for continuity, but the contents are
+better described as a broader single-image reflection-removal workspace rather than just one model.
 
 ## Sample Output
 
@@ -14,7 +23,7 @@ This repository is best understood as a **research prototype**. It documents the
 
 The `output/` directory also contains intermediate denoising snapshots produced during inference.
 
-## Model Summary
+## Original prototype summary
 
 The implementation combines:
 
@@ -93,6 +102,28 @@ python inference.py \
 - CPU and GPU inference are both supported, but intended usage is GPU-oriented.
 - No pretrained checkpoint is bundled in this repository.
 - CUDA / PyTorch compatibility should be checked manually for GPU runs.
+
+## 2026 benchmark + reference update
+
+This repository now also includes a lightweight **latest-method benchmarking/reference layer**
+for comparing this prototype against stronger modern baselines:
+
+- **RDNet / XReflection** (CVPR 2025 ecosystem baseline)
+- **Dereflection Any Image** (modern diffusion-based reference)
+
+Added materials:
+
+- `docs/latest-methods.md` — concise notes on stronger current methods worth using as references
+- `docs/benchmarks/2026-04-17-benchmark-report.md` — public-set benchmark summary from a `develop` host run
+- `docs/benchmarks/2026-04-17-*-summary.json` — per-dataset metric dumps
+- `scripts/run_dai_eval.py` — unified external evaluator for Dereflection Any Image outputs
+- `scripts/collect_rdnet_results.py` — converts XReflection visualization outputs into exportable predictions + metrics
+- `scripts/make_method_comparison.py` — builds side-by-side comparison boards
+- `configs/rdnet_eval.yml` — test-only RDNet evaluation config for XReflection checkpoints
+
+These additions **do not replace** the original prototype model in this repo. They are here to
+make future work easier to benchmark against stronger references before investing more time in
+the old diffusion prototype.
 ## License
 
 Apache License 2.0. See [`LICENSE`](LICENSE).

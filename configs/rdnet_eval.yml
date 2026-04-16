@@ -1,0 +1,140 @@
+name: rdnet_eval_public
+model_type: RDNetModel
+num_gpu: 1
+manual_seed: 42
+precision: "32-true"
+accelerator: gpu
+devices: 1
+val_check_interval: 1.0
+log_every_n_steps: 10
+
+lightning:
+  max_epochs: 1
+  gradient_clip_val: null
+  accumulate_grad_batches: 1
+  deterministic: false
+  strategy: auto
+  profiler: null
+  num_sanity_val_steps: 0
+
+checkpoint:
+  monitor: "metrics/average/psnr"
+  mode: max
+  save_top_k: 1
+  save_last: true
+
+datasets:
+  train:
+    name: dummy
+    type: DSRDataset
+    datadir: /path/to/sirs/train/VOCdevkit/VOC2012/PNGImages
+    fns: null
+    io_backend:
+      type: disk
+    use_shuffle: false
+    num_worker_per_gpu: 0
+    batch_size_per_gpu: 1
+    dataset_enlarge_ratio: 1
+    prefetch_mode: null
+    enable_transforms: false
+
+  val_datasets:
+    - name: Real20
+      type: DSRTestDataset
+      mode: eval
+      datadir: /path/to/sirs/test/real20_420
+      io_backend: {type: disk}
+      use_shuffle: false
+      num_worker_per_gpu: 2
+      batch_size_per_gpu: 1
+    - name: Nature
+      type: DSRTestDataset
+      mode: eval
+      datadir: /path/to/sirs/test/Nature
+      io_backend: {type: disk}
+      use_shuffle: false
+      num_worker_per_gpu: 2
+      batch_size_per_gpu: 1
+    - name: SIR2-Wild
+      type: DSRTestDataset
+      mode: eval
+      datadir: /path/to/sirs/test/SIR2/WildSceneDataset
+      io_backend: {type: disk}
+      use_shuffle: false
+      num_worker_per_gpu: 2
+      batch_size_per_gpu: 1
+
+network_g:
+  type: RDNet
+  channels: [64, 128, 256, 512]
+  layers: [2, 2, 4, 2]
+  num_subnet: 4
+  loss_col: 4
+  num_classes: 1000
+  drop_path: 0
+  save_memory: true
+  inter_supv: true
+  head_init_scale: null
+  kernel_size: 3
+  pretrained_models:
+    cls_model: cls_model.pth
+    base_network: focal.pth
+
+path:
+  pretrain_network_g: null
+  param_key_g: params
+  strict_load_g: true
+  resume_state: null
+  experiments_root: /tmp/xreflection_experiments
+  visualization: null
+  log: null
+
+train:
+  optim_g:
+    type: AdamW
+    baseball_lr: 1e-4
+    other_lr: 2e-4
+    weight_decay: 0
+  scheduler:
+    type: MultiStepLR
+    milestones: [150, 300, 450]
+    gamma: 0.5
+  pixel_opt:
+    type: MSELoss
+    loss_weight: 1.0
+    reduction: mean
+  perceptual_opt:
+    type: PerceptualLoss
+    layer_weights:
+      conv1_2: 0.1
+      conv2_2: 0.1
+      conv3_4: 1
+      conv4_4: 1
+      conv5_4: 1
+    vgg_type: vgg19
+    use_input_norm: true
+    perceptual_weight: 1.0
+    style_weight: 0.0
+    range_norm: false
+    criterion: l1
+  grad_opt:
+    type: GradientLoss
+    loss_weight: 1
+
+val:
+  save_img: true
+  save_img_top_n: 1
+  suffix: rdnet_eval
+  metrics:
+    psnr:
+      type: calculate_psnr
+    ssim:
+      type: calculate_ssim
+
+logger:
+  tensorboard:
+    flush_secs: 5
+    max_queue: 10
+  wandb:
+    enable: false
+    project: xreflection
